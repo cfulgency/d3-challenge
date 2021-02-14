@@ -44,7 +44,7 @@ function makeResponsive() {
     var chartGroup = svg.append("g")
         .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-    d3.csv("assets/data.csv").then(function(healthData) {
+    d3.csv("assets/data/data.csv").then(function(healthData) {
         // if (error) return console.warn(error);
 
         console.log(healthData);
