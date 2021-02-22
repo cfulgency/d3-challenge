@@ -1,128 +1,104 @@
 // @TODO: YOUR CODE HERE!
 
-// d3.select(window).on("resize", makeResponsive);
+//============Set up chart=====================
+var svgWidth = 960;
+var svgHeight = 500;
 
-// loadChart();
+var margin = {
+  top: 20,
+  right: 40,
+  bottom: 60,
+  left: 50
+};
 
-function makeResponsive() {
+var width = svgWidth - margin.left - margin.right;
+var height = svgHeight - margin.top - margin.bottom;
 
-    // if the SVG area isn't empty when the browser loads,
-    // remove it and replace it with a resized version of the chart
-    var svgArea = d3.select("#scatter").select("svg");
+// ====Create an SVG wrapper,append an SVG group that will hold chart and set margins=====
+var svg = d3
+  .select("#scatter")
+  .append("svg")
+  .attr("width", svgWidth)
+  .attr("height", svgHeight);
+
+var chartGroup = svg.append("g")
+  .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+// ==========Import and format the data to numerical values =======================
+d3.csv("assets/data/data.csv").then(function(CensusData) {
+  CensusData.forEach(function(data) {
+    data.age = +data.age;
+    data.smokes = +data.smokes;
+    // console.log(data);
+  });
+
+  // ==============Create Scales====================
+  const xScale = d3.scaleLinear()
+    .domain(d3.extent(CensusData, d => d.age))
+    .range([0, width])
+    .nice(); //makes the intersection of axes crisp
+
+  const yScale = d3.scaleLinear()
+    .domain([6,d3.max(CensusData, d => d.smokes)])
+    .range([height, 0])
+    .nice();
   
-    // clear svg is not empty
-    if (!svgArea.empty()) {
-      svgArea.remove();
-      // loadChart()
-    }
-// }  
+  // =============Create Axes=========================
+  const xAxis = d3.axisBottom(xScale);
+  const yAxis = d3.axisLeft(yScale);
+
+
+// ============Append axes to the chartGroup==========
+  chartGroup.append("g").attr("transform", `translate(0, ${height})`).call(xAxis);
+  chartGroup.append("g").call(yAxis);
+
+//============Generate scatter plot=========
+chartGroup.selectAll("circle")
+.data(CensusData)
+.enter()
+.append("circle")
+.attr("cx", d=>xScale(d.age))
+.attr("cy", d=>yScale(d.smokes))
+.attr("r", "10")
+.attr("stroke-width", "1")
+.classed("stateCircle", true)
+.attr("opacity", 0.75);
+
+//============add texts to each datapoint=========
+chartGroup.append("g")
+  .selectAll('text')
+  .data(CensusData)
+  .enter()
+  .append("text")
+  .text(d=>d.abbr)
+  .attr("x",d=>xScale(d.age))
+  .attr("y",d=>yScale(d.smokes))
+  .classed(".stateText", true)
+  .attr("font-family", "sans-serif")
+  .attr("text-anchor", "middle")
+  .attr("fill", "white")
+  .attr("font-size", "10px")
+  .style("font-weight", "bold")
+  .attr("alignment-baseline", "central");
   
-// function loadChart() {
-    // SVG wrapper dimensions are determined by the current width and
-    // height of the browser window.
-    var svgWidth = window.innerWidth;
-    var svgHeight = window.innerHeight;
-  
-    var margin = {
-      top: 50,
-      bottom: 50,
-      right: 50,
-      left: 50
-    };
-  
-    var height = svgHeight - margin.top - margin.bottom;
-    var width = svgWidth - margin.left - margin.right;
-
-    // Append SVG element
-    var svg = d3
-    .select("#scatter")
-    .append("svg")
-    .attr("height", svgHeight)
-    .attr("width", svgWidth);
-
-    // Append group element
-    var chartGroup = svg.append("g")
-        .attr("transform", `translate(${margin.left}, ${margin.top})`);
-
-    d3.csv("assets/data/data.csv").then(function(healthData) {
-        // if (error) return console.warn(error);
-
-        console.log(healthData);
-
-        healthData.forEach(function(data) {
-          data.smokes = +data.smokes;
-          data.age = +data.age;
-        });
-
-        // create scales
-        var xLinearScale = d3.scaleLinear()
-          .domain(d3.extent(healthData, d => d.age))
-          .range([0, width]);
-
-        var yLinearScale = d3.scaleLinear()
-          .domain([8, d3.max(healthData, d => d.smokes)])
-          .range([height, 0]);
-
-        // create axes
-        var xAxis = d3.axisBottom(xLinearScale);
-        var yAxis = d3.axisLeft(yLinearScale);
-
-        // append axes
-        chartGroup.append("g")
-          .attr("transform", `translate(0, ${height})`)
-          .call(xAxis);
-
-        chartGroup.append("g")
-          .call(yAxis);
-
-        chartGroup.selectAll("circle")
-        .data(healthData)
-        .enter()
-        .append("circle")
-        .attr("cx", d => xLinearScale(d.age))
-        .attr("cy", d => yLinearScale(d.smokes))
-        .attr("r", "10")
-        .attr("fill", "blue")
-        .attr("stroke-width", "1")
-        .attr("stroke", "black")
-        .attr("opacity", ".5");
-
-        chartGroup.append("g").selectAll("text")
-        .data(healthData)
-        .enter()
-        .append("text")
-        .text(d => d.abbr)
-        .attr("x", d => xLinearScale(d.age))
-        .attr("y", d => yLinearScale(d.smokes))
-        .attr("text-anchor", "middle")
-        .attr("alignment-baseline", "central")
-        .attr("font_family", "sans-serif")
-        .attr("font-size", "10px")
-        .attr("fill", "white")
-        .style("font-weight", "bold");
-
-        chartGroup.append("text")
-        .attr("transform", `translate(${width / 2}, ${height + margin.top - 10})`)
+  //============add axes titles=========
+  chartGroup.append("text")
+        .attr("transform", `translate(${width / 2}, ${height + margin.top + 13})`)
         .attr("text-anchor", "middle")
         .attr("font-size", "16px")
         .attr("fill", "black")
+        .style("font-weight", "bold")
         .text("Median Age");
 
         chartGroup.append("text")
-        .attr("y", 0 - (margin.left / 2))
+        .attr("y", 0 - ((margin.left / 2) + 2))
         .attr("x", 0 - (height / 2))
         .attr("text-anchor", "middle")
         .attr("font-size", "16px")
         .attr("fill", "black")
+        .style("font-weight", "bold")
         .attr("transform", "rotate(-90)")
-        .text("Percentage Who Smoke");
-
-    })    
-
-};
-
-// When the browser loads, makeResponsive() is called.
-makeResponsive();
-
-// When the browser window is resized, makeResponsive() is called.
-d3.select(window).on("resize", makeResponsive);
+        .text("Smokers (%)");
+}).catch(function(error) {
+  console.log(error);
+});
