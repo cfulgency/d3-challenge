@@ -1,6 +1,6 @@
 // @TODO: YOUR CODE HERE!
 
-//============Set up chart=====================
+// SET UP CHART
 var svgWidth = 960;
 var svgHeight = 500;
 
@@ -14,7 +14,7 @@ var margin = {
 var width = svgWidth - margin.left - margin.right;
 var height = svgHeight - margin.top - margin.bottom;
 
-// ====Create an SVG wrapper,append an SVG group that will hold chart and set margins=====
+// CREATE SVG WRAPPER
 var svg = d3
   .select("#scatter")
   .append("svg")
@@ -24,7 +24,7 @@ var svg = d3
 var chartGroup = svg.append("g")
   .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-// ==========Import and format the data to numerical values =======================
+// IMPORT AND FORMAT DATA
 d3.csv("assets/data/data.csv").then(function(CensusData) {
   CensusData.forEach(function(data) {
     data.age = +data.age;
@@ -32,27 +32,27 @@ d3.csv("assets/data/data.csv").then(function(CensusData) {
     // console.log(data);
   });
 
-  // ==============Create Scales====================
+  // CREATE SCALES
   const xScale = d3.scaleLinear()
     .domain(d3.extent(CensusData, d => d.age))
     .range([0, width])
-    .nice(); //makes the intersection of axes crisp
+    .nice();
 
   const yScale = d3.scaleLinear()
     .domain([6,d3.max(CensusData, d => d.smokes)])
     .range([height, 0])
     .nice();
   
-  // =============Create Axes=========================
+  // CREATE AXES
   const xAxis = d3.axisBottom(xScale);
   const yAxis = d3.axisLeft(yScale);
 
 
-// ============Append axes to the chartGroup==========
+// APPEND AXES
   chartGroup.append("g").attr("transform", `translate(0, ${height})`).call(xAxis);
   chartGroup.append("g").call(yAxis);
 
-//============Generate scatter plot=========
+// GENERATE SCATTER PLOT
 chartGroup.selectAll("circle")
 .data(CensusData)
 .enter()
@@ -64,7 +64,7 @@ chartGroup.selectAll("circle")
 .classed("stateCircle", true)
 .attr("opacity", 0.75);
 
-//============add texts to each datapoint=========
+// TEXT FOR DATAPOINTS
 chartGroup.append("g")
   .selectAll('text')
   .data(CensusData)
@@ -81,7 +81,7 @@ chartGroup.append("g")
   .style("font-weight", "bold")
   .attr("alignment-baseline", "central");
   
-  //============add axes titles=========
+  // AXES TITLES
   chartGroup.append("text")
         .attr("transform", `translate(${width / 2}, ${height + margin.top + 13})`)
         .attr("text-anchor", "middle")
